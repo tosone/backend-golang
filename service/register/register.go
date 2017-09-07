@@ -20,7 +20,7 @@ type registerForm struct {
 }
 
 // Login 注册
-func Login(ctx *iris.Context) {
+func Login(ctx iris.Context) {
 	var loginForm registerForm
 	ctx.ReadJSON(&loginForm)
 	DB := mongo.MgoDb{}
@@ -29,12 +29,14 @@ func Login(ctx *iris.Context) {
 	var userInfo model.UserRegisterForm
 	if err := DB.C("test").Find(bson.M{"name": loginForm.Name}).One(&userInfo); err != nil {
 		log.Println(err)
-		ctx.JSON(405, model.ResponseInfo{Status: 405, Info: "MongoDB is error, please retry again."})
+		ctx.StatusCode(405)
+		ctx.JSON(iris.Map{"status": 405, "info": "MongoDB is error, please retry again."})
 		return
 	}
 	if err := checkPasswordHash(loginForm.Password+userInfo.Salt, userInfo.Hash); err != nil {
 		log.Println(err)
-		ctx.JSON(405, model.ResponseInfo{Status: 405, Info: "Password or Username is wrong."})
+		ctx.StatusCode(405)
+		ctx.JSON(iris.Map{"status": 405, "info": "Password or Username is wrong."})
 		return
 	}
 	mongo.RedisPool.Get().Do("Set", uuid.NewV4().String(), "EX", config.SessionExpire)
@@ -46,11 +48,12 @@ func Login(ctx *iris.Context) {
 	if err != nil {
 		log.Println(err)
 	}
-	ctx.JSON(iris.StatusOK, map[string]string{"authenticate": signedString})
+	ctx.StatusCode(iris.StatusOK)
+	ctx.JSON(iris.Map{"authenticate": signedString})
 }
 
 // Register 注册
-func Register(ctx *iris.Context) {
+func Register(ctx iris.Context) {
 	var data registerForm
 	ctx.ReadJSON(&data)
 	var hash string
@@ -69,7 +72,9 @@ func Register(ctx *iris.Context) {
 	DB.Init()
 	DB.C("test").Insert(userInfo)
 	defer DB.Close()
-	ctx.JSON(iris.StatusOK, userInfo)
+	ctx.StatusCode(iris.StatusOK)
+	log.Println(userInfo)
+	ctx.JSON(iris.Map{})
 }
 
 func hashPassword(password string) (string, error) {

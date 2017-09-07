@@ -6,7 +6,7 @@ import (
 )
 
 // Index 登陆注册
-func Index(app *iris.Framework) {
+func Index(app *iris.Application) {
 	app.Post("/login", register.Login)
 	app.Post("/register", register.Register)
 }

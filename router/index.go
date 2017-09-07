@@ -6,6 +6,6 @@ import (
 )
 
 // Index 入口文件
-func Index(app *iris.Framework) {
+func Index(app *iris.Application) {
 	register.Index(app)
 }
